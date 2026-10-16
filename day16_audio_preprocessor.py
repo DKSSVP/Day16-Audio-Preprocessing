@@ -8,7 +8,7 @@ def inspect_wav_audio_file(file_path):
 
     if not os.path.isfile(file_path):
         print(f"[ERROR] Audio file not found: {file_path}")
-        return
+        return False
 
     try:
         with wave.open(file_path, "rb") as wav_file:
@@ -16,6 +16,10 @@ def inspect_wav_audio_file(file_path):
             sample_width = wav_file.getsampwidth()
             sample_rate = wav_file.getframerate()
             total_frames = wav_file.getnframes()
+
+            if sample_rate == 0:
+                print("[ERROR] Invalid WAV file: sample rate is zero.")
+                return False
 
             duration = total_frames / sample_rate
 
@@ -37,18 +41,28 @@ def inspect_wav_audio_file(file_path):
             else:
                 print("[OK] Sample rate meets the 16 kHz standard.")
 
-    except (wave.Error, EOFError) as error:
+            return True
+
+    except (wave.Error, EOFError, OSError) as error:
         print(f"[ERROR] Unable to read WAV file: {error}")
+        return False
 
 
 if __name__ == "__main__":
     print("Audio Preprocessing Module Ready.")
 
-    audio_path = input(
-        "\nEnter the path of a WAV file (or press Enter to exit): "
-    ).strip().strip('"')
+    while True:
+        audio_path = input(
+            "\nEnter the path of a WAV file (or press Enter to exit): "
+        ).strip().strip('"')
 
-    if audio_path:
-        inspect_wav_audio_file(audio_path)
-    else:
-        print("No audio file supplied. Exiting.")
+        if not audio_path:
+            print("No audio file supplied. Exiting.")
+            break
+
+        if not audio_path.lower().endswith(".wav"):
+            print("[ERROR] Invalid file type. Please provide a .wav file.")
+            continue
+
+        if inspect_wav_audio_file(audio_path):
+            break
